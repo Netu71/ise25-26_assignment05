@@ -16,6 +16,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
+import java.lang.*;
 
 import java.util.List;
 import java.util.Map;
@@ -92,6 +93,11 @@ public class CucumberPosSteps {
     }
 
     // TODO: Add Given step for new scenario
+    @Given("a POS list with three elements")
+    public void posListWithThreeElements(List<PosDto> posList) {
+        createdPosList = createPos(posList);
+        assertThat(createdPosList).size().isEqualTo(posList.size());
+    }
 
     // When -----------------------------------------------------------------------
 
@@ -102,6 +108,18 @@ public class CucumberPosSteps {
     }
 
     // TODO: Add When step for new scenario
+    @When("I change the description of a POS with the name {string} to {string}")
+    public void changeTheDescriptionOfPOSWithTheNameSchmelzpunkt(String name, String newDescription){
+        List<PosDto> retrievedPosList = retrievePos();
+        for (int i = 0; i < retrievedPosList.size(); i++) {
+            PosDto pos = retrievedPosList.get(i);
+            if (name.equals(pos.name())) {
+                PosDto updated = pos.toBuilder().description(newDescription).build();
+                List<PosDto> response = updatePos(List.of(updated));
+                updatedPos = response.get(0);
+            }
+        }
+    }
 
     // Then -----------------------------------------------------------------------
 
@@ -114,4 +132,13 @@ public class CucumberPosSteps {
     }
 
     // TODO: Add Then step for new scenario
+    @Then("the description of the POS with the name {string} should change to {string}")
+    public void theDescriptionOfThePOSWithTheNameSchmelzpunktChanged(String name, String newDescription){
+        List<PosDto> retrievedPosList = retrievePos();
+        for (PosDto pos : retrievedPosList) {
+            if (name.equals(pos.name())) {
+                assertThat(pos.description().equals(newDescription));
+            }
+        }
+    }
 }
